@@ -1,4 +1,16 @@
-<p>hello world</p>
+{{  'sections-tutorial.css' | asset_url | stylesheet_tag }}
+
+<h2>{{ section.settings.text_setting }}</h2>
+
+<p>{{ section.index }}</p>
+<p>{{ section.id }}</p>
+
+{%- if request.design_mode -%}
+	<p>This is from the Theme Editor</p>
+{%- endif -%}
+
+
+{% comment %} <p>hello world</p>
 
 <h2>Text Setting</h2>
 <p>{{  section.settings.text_setting }}</p>
@@ -70,7 +82,74 @@
 <div>{{ section.settings.liquid_setting }}</div>
 
 <h2>Product Setting</h2>
-<div>{{ section.settings.product_setting.id }}</div>
+<p>
+	{{ section.settings.product_setting }} | {{ section.settings.product_setting.title }}
+	{{ section.settings.product_setting.variants[0].price | money }}
+</p>
+
+<h2>Product List Setting</h2>
+{% for product in section.settings.product_list_setting %}
+	<p>
+		{{ product.handle }} | {{ product.title }}
+		{{ product.variants[0].price | money }}
+	</p>
+{% endfor %}
+
+<h2>Collection Setting</h2>
+<p>
+	{{ section.settings.collection_setting }} | {{ section.settings.collection_setting.title }} - 
+	{{ section.settings.collection_setting.products.size }}
+</p>
+
+<h2>Collection List Setting</h2>
+{% for collection in section.settings.collection_list_setting %}
+	<p>
+		{{ collection }} | {{ collection.title }} - {{ collection.products.size }}
+	</p>
+{% endfor %}
+
+<h2 style="text-align: {{ section.settings.text_alignment_setting }}">Text Alignment Setting</h2>
+<p style="text-align: {{ section.settings.text_alignment_setting }}">{{ section.settings.text_alignment_setting }}</p>
+
+<h2>Font Setting</h2>
+<p>{{ section.settings.font_setting.family }}</p>
+
+
+<style>
+	{{ section.settings.font_setting | font_face: font_display: 'swap' }}
+	.section-tutorial * {
+		font-family: {{ section.settings.font_setting.family }}
+	}
+</style> {% endcomment %}
+
+<h1>Section Tutorial</h1>
+
+{% assign products = section.blocks | where: "type", "section_product" %}
+{% assign collections = section.blocks | where: "type", "section_collection" %}
+
+<h2>Products</h2>
+{%- for product in products -%}
+	{% assign title = product.settings.title | default: product.settings.product.title %}
+	{% assign image = product.settings.image | default: product.settings.product.featured_image %}
+	<div {{ product.shopify_attributes }}>
+		<p>{{ title }}</p>
+		{%- if image -%}
+			{{ image | image_url: width: 300, height: 300 | image_tag }}
+		{%- endif -%}
+	</div>
+{%- endfor -%}
+
+<h2>Collections</h2>
+{%- for collection in collections -%}
+	{% assign title = collection.settings.title | default: collection.settings.collection.title %}
+	{% assign image = collection.settings.image | default: collection.settings.collection.featured_image %}
+	<div {{ collection.shopify_attributes }}>
+		<p>{{ title }}</p>
+		{%- if image -%}
+			{{ image | image_url: width: 300, height: 300 | image_tag }}
+		{%- endif -%}
+	</div>
+{%- endfor -%}
 
 {% schema %}
 	{
@@ -78,6 +157,9 @@
 		"tag": "section",
 		"class": "section-tutorial",
 		"limit": 2,
+		"disabled_on": {
+			"templates": ["collection"]
+		},
 		"settings": [
 			{
 				"type": "text",
@@ -209,17 +291,160 @@
 				"label": "Liquid Setting"
 			},
 			{
+				"type": "header",
+				"content": "Site Resource Settings",
+				"info": "Settings related to Shopify Resources [Learn More](https://shopify.com)"
+			},
+
+			{
 				"type": "product",
 				"label": "Product Setting",
 				"id": "product_setting"
+			},
+			{
+				"type": "product_list",
+				"label": "Product List Setting",
+				"id": "product_list_setting",
+				"limit": 10
+			},
+
+			{
+				"type": "collection",
+				"label": "Collection Setting",
+				"id": "collection_setting"
+			},
+			{
+				"type": "collection_list",
+				"label": "Collection List Setting",
+				"id": "collection_list_setting",
+				"limit": 10
+			},
+			{
+				"type": "text_alignment",
+				"label": "Text Alignment Setting",
+				"id": "text_alignment_setting",
+				"default": "center"
+			},
+			{
+				"type": "font_picker",
+				"label": "Font Setting",
+				"id": "font_setting",
+				"default": "assistant_n4"
 			}
 			
 		],
-		"blocks": [],
+		"blocks": [
+			{
+				"type": "section_product",
+				"name": "Product",
+				"settings": [
+					{
+						"type": "product",
+						"label": "Product",
+						"id": "product"
+					}, 
+					{
+						"type": "text",
+						"id": "title",
+						"label": "Title",
+						"info": "Optional. Will Override the Products title if defined"
+					},
+					{
+						"type": "image_picker",
+						"id": "image",
+						"label": "image",
+						"info": "Optional. Will Override the Products image if defined"
+					}
+				],
+				"limit": 4
+			},
+			{
+				"type": "section_collection",
+				"name": "Collection",
+				"settings": [
+					{
+						"type": "collection",
+						"label": "Collection",
+						"id": "collection"
+					}, 
+					{
+						"type": "text",
+						"id": "title",
+						"label": "Title",
+						"info": "Optional. Will Override the Collection title if defined"
+					},
+					{
+						"type": "image_picker",
+						"id": "image",
+						"label": "image",
+						"info": "Optional. Will Override the Collection image if defined"
+					}
+				]
+			}
+		],
 		"presets": [
 			{
-				"name": "Sections Tutorial",
-				"settings": {}
+				"name": "Sections Tutorial with Products",
+				"settings": {
+					"text_setting": "Section Tutorial With Products"
+				},
+				"blocks": [
+					{
+						"type": "section_product",
+						"settings": {
+							"product": "the-3p-fulfilled-snowboard"
+						}
+					},
+					{
+						"type": "section_product",
+						"settings": {
+							"product": "the-3p-fulfilled-snowboard",
+							"title": "Another Product"
+						}
+					}
+				]
+			},
+			{
+				"name": "Sections Tutorial with Collections",
+				"settings": {
+					"text_setting": "Section Tutorial With Collections"
+				},
+				"blocks": [
+					{
+						"type": "section_collection",
+						"settings": {
+							"collection": "hydrogen"
+						}
+					},
+					{
+						"type": "section_collection",
+						"settings": {
+							"collection": "hydrogen",
+							"title": "Another Collection"
+						}
+					}
+				]
+			},
+			{
+				"name": "Sections Tutorial Mixed",
+				"settings": {
+					"text_setting": "Section Tutorial With Product & Collections"
+				},
+				"blocks": [
+					{
+						"type": "section_product",
+						"settings": {
+							"product": "the-3p-fulfilled-snowboard"
+						}
+					},
+					{
+						"type": "section_collection",
+						"settings": {
+							"collection": "hydrogen",
+							"title": "Another Collection"
+						}
+					}
+				]
 			}
 		]
 	}
