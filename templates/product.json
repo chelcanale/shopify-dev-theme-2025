@@ -45,6 +45,13 @@
             "show_gift_card_recipient": true
           }
         },
+        "text_gx7hLH": {
+          "type": "text",
+          "settings": {
+            "text": "Text block {{ product.metafields.custom.example_metafield.value }}",
+            "text_style": "body"
+          }
+        },
         "description": {
           "type": "description",
           "settings": {}
@@ -63,6 +70,7 @@
         "variant_picker",
         "quantity_selector",
         "buy_buttons",
+        "text_gx7hLH",
         "description",
         "share"
       ],
